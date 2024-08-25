@@ -1,0 +1,8 @@
+# Archive Folder
+_arch/
+
+# Config Files
+client_config.json
+
+# Personal Data
+*.csv

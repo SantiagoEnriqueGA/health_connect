@@ -18,7 +18,13 @@ class OAuth2Server:
         """ Initialize the FitbitOauth2Client """
         self.success_html = """
             <h1>You are now authorized to access the Fitbit API!</h1>
-            <br/><h3>You can close this window</h3>"""
+            <br/><h3>You can close this window</h3>
+            <script type="text/javascript">
+                window.setTimeout(function() {
+                    window.open('','_self').close();
+                }, 3000);
+            </script>
+            """
         self.failure_html = """
             <h1>ERROR: %s</h1><br/><h3>You can close this window</h3>%s"""
 

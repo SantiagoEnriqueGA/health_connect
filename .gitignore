@@ -6,3 +6,4 @@ client_config.json
 
 # Personal Data
 *.csv
+*.db

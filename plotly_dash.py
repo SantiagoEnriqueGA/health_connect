@@ -118,11 +118,13 @@ def load_data_and_create_figures():
 
 def generate_figures(df, start_date, end_date, bmi_fat_selected_lines, weight_selected_lines):
     """
-    Generate figures for BMI, Body Fat Percentage, and Weight over time.
+    Generate figures for BMI, Body Fat Percentage, and Weight over time, based on the selected date range and lines.
     Parameters:
         - df (DataFrame): The input DataFrame containing the data.
         - start_date (str or datetime): The start date for filtering the data.
         - end_date (str or datetime): The end date for filtering the data.
+        - bmi_fat_selected_lines (list): List of selected lines for BMI and Body Fat Percentage.
+        - weight_selected_lines (list): List of selected lines for Weight.
     Returns:
         - weight_fig (Figure): The figure for Weight over time.
         - bmi_fat_fig (Figure): The figure for BMI and Body Fat Percentage over time.
@@ -156,13 +158,13 @@ def generate_figures(df, start_date, end_date, bmi_fat_selected_lines, weight_se
     
     return weight_fig, bmi_fat_fig
 
-
+# Initial setup
 df = load_data_and_create_figures()                             # Load data and create initial figures
 start_date = df['date'].min()                                   # Get the minimum date from the data
 end_date = df['date'].max()                                     # Get the maximum date from the data
 initial_figures = generate_figures(df, start_date, end_date, ['bmi','bmi_ma','fat','fat_ma'], ['weight','weight_ma'])    # Generate initial figures based on the data
 
-
+# Define the layout of the Dash app, HTML elements and components
 app.layout = html.Div(style={'backgroundColor': '#1f1f1f', 'padding': '10px', 'height': '100vh'}, children=[
     html.H1("Personal Data Dashboard", style={'textAlign': 'center', 'color': 'white'}),    # Header
 
@@ -235,13 +237,16 @@ app.layout = html.Div(style={'backgroundColor': '#1f1f1f', 'padding': '10px', 'h
 )
 def update_graphs(start_date, end_date, n_clicks,bmi_fat_selected_lines, weight_selected_lines,n_intervals):
     """
-    Update the graphs based on the given start date, end date, and number of clicks.
+    Update the graphs based on the selected date range and line toggles.
     Parameters:
-        start_date (str): The start date for the data.
-        end_date (str): The end date for the data.
-        n_clicks (int): The number of clicks.
+        - start_date (str): The start date for the data.
+        - end_date (str): The end date for the data.
+        - n_clicks (int): The number of clicks.
+        - bmi_fat_selected_lines (list): The selected lines for BMI and fat.
+        - weight_selected_lines (list): The selected lines for weight.
+        - n_intervals (int): The number of intervals.
     Returns:
-        dict: A dictionary containing the generated figures based on the updated data.
+        - dict: A dictionary containing the generated figures based on the updated data.
     """
     ...
     if n_clicks > 0:    # Check if the refresh button has been clicked

@@ -10,3 +10,6 @@ client_config.json
 
 # Log Files
 *.log
+
+# Cache Files
+__pycache__/

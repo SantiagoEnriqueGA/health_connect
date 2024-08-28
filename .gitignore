@@ -7,3 +7,6 @@ client_config.json
 # Personal Data
 *.csv
 *.db
+
+# Log Files
+*.log

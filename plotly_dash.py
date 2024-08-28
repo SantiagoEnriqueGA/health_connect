@@ -67,7 +67,7 @@ def update_layout(fig, title):
             'xanchor': 'center'     # Anchor the title in the center
         },
         paper_bgcolor='rgba(0, 0, 0, 0)',       # Set the background color of the plot
-        plot_bgcolor='rgba(0, 0, 0, 0)',        # Set the background color of the plot area
+        plot_bgcolor='rgba(0, 0, 0, 1)',        # Set the background color of the plot area
         font=dict(color='white'),               # Set the font color to white
         xaxis=dict(                                         
             dtick='M1',                         # Set tick interval to monthly
@@ -116,7 +116,7 @@ def load_data_and_create_figures():
     
     return df
 
-def generate_figures(df, start_date, end_date):
+def generate_figures(df, start_date, end_date, bmi_fat_selected_lines, weight_selected_lines):
     """
     Generate figures for BMI, Body Fat Percentage, and Weight over time.
     Parameters:
@@ -135,16 +135,22 @@ def generate_figures(df, start_date, end_date):
     
     
     bmi_fat_fig = go.Figure()       # Create a new figure for BMI and Body Fat Percentage
-    bmi_fat_fig.add_trace(go.Scatter(x=df_filtered['date'], y=df_filtered['bmi'], mode='lines', name='BMI'))                # Add BMI data to the figure
-    bmi_fat_fig.add_trace(go.Scatter(x=df_filtered['date'], y=df_filtered['bmi_ma'], mode='lines', name='BMI (MA)'))        # Add BMI moving average data to the figure
-    bmi_fat_fig.add_trace(go.Scatter(x=df_filtered['date'], y=df_filtered['fat'], mode='lines', name='Body Fat'))           # Add Body Fat Percentage data to the figure
-    bmi_fat_fig.add_trace(go.Scatter(x=df_filtered['date'], y=df_filtered['fat_ma'], mode='lines', name='Body Fat (MA)'))   # Add Body Fat Percentage moving average data to the figure
+    if 'bmi' in bmi_fat_selected_lines:
+        bmi_fat_fig.add_trace(go.Scatter(x=df_filtered['date'], y=df_filtered['bmi'], mode='lines', name='BMI'))                # Add BMI data to the figure
+    if 'bmi_ma' in bmi_fat_selected_lines:
+        bmi_fat_fig.add_trace(go.Scatter(x=df_filtered['date'], y=df_filtered['bmi_ma'], mode='lines', name='BMI (MA)'))        # Add BMI moving average data to the figure
+    if 'fat' in bmi_fat_selected_lines:
+        bmi_fat_fig.add_trace(go.Scatter(x=df_filtered['date'], y=df_filtered['fat'], mode='lines', name='Body Fat'))           # Add Body Fat Percentage data to the figure
+    if 'fat_ma' in bmi_fat_selected_lines:        
+        bmi_fat_fig.add_trace(go.Scatter(x=df_filtered['date'], y=df_filtered['fat_ma'], mode='lines', name='Body Fat (MA)'))   # Add Body Fat Percentage moving average data to the figure
     add_year_lines(bmi_fat_fig, df_filtered)                                # Add vertical lines for each year
     update_layout(bmi_fat_fig, 'BMI and Body Fat Percentage Over Time')     # Update the layout of the figure
     
     weight_fig = go.Figure()        # Create a new figure for Weight over time
-    weight_fig.add_trace(go.Scatter(x=df_filtered['date'], y=df_filtered['weight'], mode='lines', name='Weight'))           # Add Weight data to the figure
-    weight_fig.add_trace(go.Scatter(x=df_filtered['date'], y=df_filtered['weight_ma'], mode='lines', name='Weight (MA)'))   # Add Weight moving average data to the figure
+    if 'weight' in weight_selected_lines:
+        weight_fig.add_trace(go.Scatter(x=df_filtered['date'], y=df_filtered['weight'], mode='lines', name='Weight'))           # Add Weight data to the figure
+    if 'weight_ma' in weight_selected_lines:
+        weight_fig.add_trace(go.Scatter(x=df_filtered['date'], y=df_filtered['weight_ma'], mode='lines', name='Weight (MA)'))   # Add Weight moving average data to the figure
     add_year_lines(weight_fig, df_filtered)             # Add vertical lines for each year
     update_layout(weight_fig, 'Weight Over Time')       # Update the layout of the figure
     
@@ -154,10 +160,10 @@ def generate_figures(df, start_date, end_date):
 df = load_data_and_create_figures()                             # Load data and create initial figures
 start_date = df['date'].min()                                   # Get the minimum date from the data
 end_date = df['date'].max()                                     # Get the maximum date from the data
-initial_figures = generate_figures(df, start_date, end_date)    # Generate initial figures based on the data
+initial_figures = generate_figures(df, start_date, end_date, ['bmi','bmi_ma','fat','fat_ma'], ['weight','weight_ma'])    # Generate initial figures based on the data
 
 
-app.layout = html.Div(style={'backgroundColor': '#1f1f1f', 'padding': '10px'}, children=[
+app.layout = html.Div(style={'backgroundColor': '#1f1f1f', 'padding': '10px', 'height': '100vh'}, children=[
     html.H1("Personal Data Dashboard", style={'textAlign': 'center', 'color': 'white'}),    # Header
 
     dcc.DatePickerRange(
@@ -184,7 +190,36 @@ app.layout = html.Div(style={'backgroundColor': '#1f1f1f', 'padding': '10px'}, c
     }),
     
     dcc.Graph(id='weight-graph', figure=initial_figures[0]),    # Weight graph
+    
+    dcc.Checklist(
+    id='weight-line-toggle',
+    options=[
+        {'label': 'Show Weight', 'value': 'weight'},
+        {'label': 'Show Weight (MA)', 'value': 'weight_ma'}
+    ],
+    value=['weight','weight_ma'],
+    style={'color': 'white'}
+    ),
+    
     dcc.Graph(id='bmi-fat-graph', figure=initial_figures[1]),   # BMI and Body Fat Percentage graph
+    
+    dcc.Checklist(
+    id='bmi-fat-line-toggle',
+    options=[
+        {'label': 'Show BMI', 'value': 'bmi'},
+        {'label': 'Show BMI (MA)', 'value': 'bmi_ma'},
+        {'label': 'Show Body Fat', 'value': 'fat'},
+        {'label': 'Show Body Fat (MA)', 'value': 'fat_ma'}
+    ],
+    value=['bmi','bmi_ma','fat','fat_ma'],
+    style={'color': 'white'}
+    ),
+    
+    # TODO
+    # Display a summary of the data below the graphs, such as the latest BMI, weight, and fat percentage, or the average over the selected date range.
+    html.Div(id='data-summary', style={'color': 'white'}),
+    
+    dcc.Interval(id='interval', interval=3600*1000, n_intervals=0)
 ])
 
 # Define callback to update graphs based on date range
@@ -193,9 +228,12 @@ app.layout = html.Div(style={'backgroundColor': '#1f1f1f', 'padding': '10px'}, c
      Output('bmi-fat-graph', 'figure')],        # Output for the BMI and Body Fat Percentage graph
     [Input('date-picker-range', 'start_date'),  # Input for the start date
      Input('date-picker-range', 'end_date'),    # Input for the end date
-     Input('refresh-button', 'n_clicks')]       # Input for the refresh button
+     Input('refresh-button', 'n_clicks'),       # Input for the refresh button
+     Input('bmi-fat-line-toggle', 'value'),
+     Input('weight-line-toggle', 'value'),
+     Input('interval', 'n_intervals')]
 )
-def update_graphs(start_date, end_date, n_clicks):
+def update_graphs(start_date, end_date, n_clicks,bmi_fat_selected_lines, weight_selected_lines,n_intervals):
     """
     Update the graphs based on the given start date, end date, and number of clicks.
     Parameters:
@@ -225,7 +263,7 @@ def update_graphs(start_date, end_date, n_clicks):
     df['bmi_ma'] = calculate_moving_average(df, 'bmi')          # Calculate moving average for 'bmi' column
     df['fat_ma'] = calculate_moving_average(df, 'fat')          # Calculate moving average for 'fat' column
     
-    return generate_figures(df, start_date, end_date)
+    return generate_figures(df, start_date, end_date, bmi_fat_selected_lines, weight_selected_lines)
 
 if __name__ == '__main__':
     # Run in debug mode, live reloading enabled
